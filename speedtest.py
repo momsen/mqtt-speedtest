@@ -1,6 +1,6 @@
+from __future__ import print_function
 import argparse, re, time, subprocess, os, sys, traceback
 
-import argparse
 from configparser import SafeConfigParser
 import paho.mqtt.publish as publish
 import json
@@ -72,7 +72,7 @@ def read_config(filename):
             section[parameter] = parser.get(section_name, parameter)
 
         cfg[section_name] = section
-        
+
     try:
         cfg['mqtt']['port'] = int(cfg['mqtt']['port'])
     except ValueError:
@@ -86,8 +86,7 @@ parser.add_argument("inifile", type=str, action="store", help="name of the ini f
 args = parser.parse_args()
 
 cfg = read_config(args.inifile)
-#ping, upload, download = run_speedtest()
-ping, upload, download = (1,2,3)
+ping, download, upload = run_speedtest()
 publish_messages(ping, upload, download, cfg)
 
 print('{};{};{};{};{}'.format(time.strftime('%y/%m/%d'), time.strftime('%H:%M'), ping, download, upload))
