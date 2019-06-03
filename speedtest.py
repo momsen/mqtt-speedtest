@@ -5,17 +5,6 @@ from configparser import SafeConfigParser
 import paho.mqtt.publish as publish
 import json
 
-def load_discovery_payload(filename):
-    try:
-        file = open(filename, "r") 
-        payload = file.read()
-        file.close()
-        return payload
-    except IOError:
-        print("Unable to read discovery payload from file file '" + filename + "':", file=sys.stderr)
-        traceback.print_exc(file=sys.stderr)
-        sys.exit(-1)
-
 def run_speedtest():
     response = subprocess.Popen('speedtest-cli --simple', shell=True, stdout=subprocess.PIPE).stdout.read()
     ping = re.findall('Ping:\s(.*?)\s', response, re.MULTILINE)
