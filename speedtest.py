@@ -20,9 +20,9 @@ def create_discovery_message(name, state_topic, unit):
     return json.dumps({'name': name, 'state_topic': state_topic, 'unit_of_meas': unit})
 
 def publish_messages(ping, upload, download, cfg):
-    discovery_msgs = [(cfg['upload']['discovery_topic'], create_discovery_message(cfg['upload']['discovery_name'], cfg['upload']['state_topic'], 'MBit/s'), 0, False),\
-                     (cfg['download']['discovery_topic'], create_discovery_message(cfg['download']['discovery_name'], cfg['download']['state_topic'], 'MBit/s'), 0, False),\
-                     (cfg['ping']['discovery_topic'], create_discovery_message(cfg['ping']['discovery_name'], cfg['ping']['state_topic'], 'ms'), 0, False)]
+    discovery_msgs = [(cfg['upload']['discovery_topic'], create_discovery_message(cfg['upload']['discovery_name'], cfg['upload']['state_topic'], 'MBit/s'), 0, True),\
+                     (cfg['download']['discovery_topic'], create_discovery_message(cfg['download']['discovery_name'], cfg['download']['state_topic'], 'MBit/s'), 0, True),\
+                     (cfg['ping']['discovery_topic'], create_discovery_message(cfg['ping']['discovery_name'], cfg['ping']['state_topic'], 'ms'), 0, True)]
     try:
         publish.multiple(discovery_msgs, hostname=cfg['mqtt']['host'], client_id=cfg['mqtt']['client_id'], port=cfg['mqtt']['port'])
     except ConnectionError:
