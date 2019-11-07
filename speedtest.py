@@ -20,11 +20,12 @@ def create_discovery_message(name, state_topic, unit):
     return json.dumps({'name': name, 'state_topic': state_topic, 'unit_of_meas': unit})
 
 def publish_messages(ping, upload, download, cfg):
+    auth = {'username': cfg['mqtt']['user'], 'password': cfg['mqtt']['pw']}
     discovery_msgs = [(cfg['upload']['discovery_topic'], create_discovery_message(cfg['upload']['discovery_name'], cfg['upload']['state_topic'], 'MBit/s'), 0, True),\
                      (cfg['download']['discovery_topic'], create_discovery_message(cfg['download']['discovery_name'], cfg['download']['state_topic'], 'MBit/s'), 0, True),\
                      (cfg['ping']['discovery_topic'], create_discovery_message(cfg['ping']['discovery_name'], cfg['ping']['state_topic'], 'ms'), 0, True)]
     try:
-        publish.multiple(discovery_msgs, hostname=cfg['mqtt']['host'], client_id=cfg['mqtt']['client_id'], port=cfg['mqtt']['port'])
+        publish.multiple(discovery_msgs, hostname=cfg['mqtt']['host'], client_id=cfg['mqtt']['client_id'], port=cfg['mqtt']['port'], auth=auth)
     except ConnectionError:
         print("Unable to publish discovery messages via mqtt:", file=sys.stderr)
         traceback.print_exc(file=sys.stderr)
@@ -33,7 +34,7 @@ def publish_messages(ping, upload, download, cfg):
                   (cfg['upload']['state_topic'], upload, 0, False),\
                   (cfg['download']['state_topic'], download, 0, False)]
     try:
-        publish.multiple(state_msgs, hostname=cfg['mqtt']['host'], client_id=cfg['mqtt']['client_id'], port=cfg['mqtt']['port'])
+        publish.multiple(state_msgs, hostname=cfg['mqtt']['host'], client_id=cfg['mqtt']['client_id'], port=cfg['mqtt']['port'], auth=auth)
     except ConnectionError:
         print("Unable to publish state messages via mqtt:", file=sys.stderr)
         traceback.print_exc(file=sys.stderr)
@@ -46,7 +47,7 @@ def read_config(filename):
         sys.exit(-1)
 
     cfg = {}
-    for section_definition in [ { 'name': 'mqtt', 'parameters': [ 'host', 'port', 'client_id'] },\
+    for section_definition in [ { 'name': 'mqtt', 'parameters': [ 'host', 'port', 'client_id', 'user', 'pw'] },\
                                 { 'name': 'upload', 'parameters': ['discovery_topic', 'discovery_name', 'state_topic']},\
                                 { 'name': 'download', 'parameters': ['discovery_topic', 'discovery_name', 'state_topic']},\
                                 { 'name': 'ping', 'parameters': ['discovery_topic', 'discovery_name', 'state_topic']}]:
@@ -76,6 +77,7 @@ args = parser.parse_args()
 
 cfg = read_config(args.inifile)
 ping, download, upload = run_speedtest()
+#ping, download, upload = (10, 200,100)
 publish_messages(ping, upload, download, cfg)
 
 print('{};{};{};{};{}'.format(time.strftime('%y/%m/%d'), time.strftime('%H:%M'), ping, download, upload))
