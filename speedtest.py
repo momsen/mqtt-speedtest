@@ -1,15 +1,18 @@
-from __future__ import print_function
-import argparse, re, time, subprocess, os, sys, traceback
-
-from configparser import SafeConfigParser
+import argparse, re, time, subprocess, os, sys, traceback, json
 import paho.mqtt.publish as publish
-import json
+from configparser import SafeConfigParser
 
 def run_speedtest():
-    response = subprocess.Popen('speedtest-cli --simple', shell=True, stdout=subprocess.PIPE).stdout.read()
-    ping = re.findall('Ping:\s(.*?)\s', response, re.MULTILINE)
-    download = re.findall('Download:\s(.*?)\s', response, re.MULTILINE)
-    upload = re.findall('Upload:\s(.*?)\s', response, re.MULTILINE)
+    proc = subprocess.Popen('speedtest-cli --simple', shell=True, stdout=subprocess.PIPE)
+    try:
+        outs, errs = proc.communicate(timeout=300)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        outs, errs = proc.communicate()
+    result = outs.decode('UTF-8')
+    ping = re.findall('Ping:\s(.*?)\s', result, re.MULTILINE)
+    download = re.findall('Download:\s(.*?)\s', result, re.MULTILINE)
+    upload = re.findall('Upload:\s(.*?)\s', result, re.MULTILINE)
 
     ping[0] = ping[0].replace(',', '.')
     download[0] = download[0].replace(',', '.')
